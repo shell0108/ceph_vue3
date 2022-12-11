@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { computed } from "vue"
+import { computed, ref, reactive } from "vue"
+import { updateUserDataApi, checkPasswordApi } from "@/api/user"
 import { useRouter } from "vue-router"
 import { useAppStore } from "@/store/modules/app"
 import { useSettingsStore } from "@/store/modules/settings"
@@ -10,6 +11,7 @@ import Hamburger from "../Hamburger/index.vue"
 import ThemeSwitch from "@/components/ThemeSwitch/index.vue"
 import Screenfull from "@/components/Screenfull/index.vue"
 import Notify from "@/components/Notify/index.vue"
+import { type FormInstance, type FormRules, ElMessage } from "element-plus"
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -35,6 +37,58 @@ const toggleSidebar = () => {
 const logout = () => {
   userStore.logout()
   router.push("/login")
+}
+
+const dialogVisible = ref<boolean>(false)
+const formRef = ref<FormInstance | null>(null)
+const formData = reactive({
+  password: "",
+  newPassword: "",
+  repeatPassword: ""
+})
+
+const validatePass = (rule: any, value: any, callback: any) => {
+  if (value === "") {
+    callback(new Error("Please input the password again"))
+  } else if (value !== formData.newPassword) {
+    callback(new Error("Two inputs don't match!"))
+  } else {
+    callback()
+  }
+}
+
+const formRules: FormRules = reactive({
+  password: [{ required: true, trigger: "blur", message: "请输入原密码" }],
+  newPassword: [{ required: true, trigger: "blur", message: "请输入新密码" }],
+  repeatPassword: [{ validator: validatePass, trigger: "blur" }]
+})
+
+const handleEdit = () => {
+  formRef.value?.validate((valid: boolean) => {
+    if (valid) {
+      checkPasswordApi({
+        id: userStore.user_id,
+        password: formData.password
+      })
+        .then(() => {
+          updateUserDataApi({
+            id: userStore.user_id,
+            password: formData.newPassword
+          }).then(() => {
+            ElMessage.success("修改成功")
+            dialogVisible.value = false
+            logout()
+          })
+        })
+        .catch()
+    }
+  })
+}
+
+const resetForm = () => {
+  formData.password = ""
+  formData.newPassword = ""
+  formData.repeatPassword = ""
 }
 </script>
 
@@ -62,6 +116,9 @@ const logout = () => {
             <a target="_blank" href="https://gitee.com/un-pany/v3-admin-vite">
               <el-dropdown-item>Gitee</el-dropdown-item>
             </a>
+            <el-dropdown-item divided @click="dialogVisible = true">
+              <span style="display: block">修改密码</span>
+            </el-dropdown-item>
             <el-dropdown-item divided @click="logout">
               <span style="display: block">退出登录</span>
             </el-dropdown-item>
@@ -70,6 +127,24 @@ const logout = () => {
       </el-dropdown>
     </div>
   </div>
+  <!-- 修改密码 -->
+  <el-dialog v-model="dialogVisible" title="修改密码" @close="resetForm" width="30%">
+    <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="left">
+      <el-form-item prop="username" label="原密码">
+        <el-input v-model="formData.password" placeholder="请输入之前密码" show-password />
+      </el-form-item>
+      <el-form-item prop="nickname" label="设置新密码">
+        <el-input v-model="formData.newPassword" placeholder="请输入新密码" show-password />
+      </el-form-item>
+      <el-form-item prop="phone" label="确认新密码">
+        <el-input v-model="formData.repeatPassword" placeholder="请输入新密码" show-password />
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="dialogVisible = false">取消</el-button>
+      <el-button type="primary" @click="handleEdit">确认</el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <style lang="scss" scoped>

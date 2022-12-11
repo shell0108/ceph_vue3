@@ -1,8 +1,10 @@
+import { ref } from "vue"
+import store from "@/store"
+import { defineStore } from "pinia"
 import { type RouteRecordRaw, createRouter, createWebHashHistory, createWebHistory } from "vue-router"
 
 const Layout = () => import("@/layout/index.vue")
 
-/** 常驻路由 */
 export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/redirect",
@@ -42,201 +44,82 @@ export const constantRoutes: RouteRecordRaw[] = [
   {
     path: "/",
     component: Layout,
-    redirect: "/dashboard",
-    children: [
-      {
-        path: "dashboard",
-        component: () => import("@/views/dashboard/index.vue"),
-        name: "Dashboard",
-        meta: {
-          title: "首页",
-          svgIcon: "dashboard",
-          affix: true
-        }
-      }
-    ]
-  },
-  {
-    path: "/unocss",
-    component: Layout,
-    redirect: "/unocss/index",
-    children: [
-      {
-        path: "index",
-        component: () => import("@/views/unocss/index.vue"),
-        name: "UnoCSS",
-        meta: {
-          title: "unocss",
-          svgIcon: "unocss"
-        }
-      }
-    ]
-  },
-  {
-    path: "/link",
-    component: Layout,
-    children: [
-      {
-        path: "https://juejin.cn/post/7089377403717287972",
-        component: () => {},
-        name: "Link",
-        meta: {
-          title: "外链",
-          svgIcon: "link"
-        }
-      }
-    ]
-  },
-  {
-    path: "/table",
-    component: Layout,
-    redirect: "/table/element-plus",
-    name: "Table",
+    redirect: "/stroage/common",
+    name: "Stroage",
     meta: {
-      title: "表格",
+      title: "存储池",
       elIcon: "Grid"
     },
     children: [
       {
-        path: "element-plus",
-        component: () => import("@/views/table/element-plus/index.vue"),
-        name: "ElementPlus",
+        path: "/stroage/common",
+        component: () => import("@/views/table/file-common/index.vue"),
+        name: "CommonStroge",
         meta: {
-          title: "Element Plus"
+          title: "公共存储"
         }
       },
       {
-        path: "vxe-table",
-        component: () => import("@/views/table/vxe-table/index.vue"),
-        name: "VxeTable",
+        path: "/stroage/my",
+        component: () => import("@/views/table/file-my/index.vue"),
+        name: "myStroge",
         meta: {
-          title: "Vxe Table"
+          title: "我的存储"
         }
       }
     ]
   },
   {
-    path: "/menu",
+    path: "/userMange",
     component: Layout,
-    redirect: "/menu/menu1",
-    name: "Menu",
-    meta: {
-      title: "多级菜单",
-      svgIcon: "menu"
-    },
+    name: "UserMange",
     children: [
       {
-        path: "menu1",
-        component: () => import("@/views/menu/menu1/index.vue"),
-        redirect: "/menu/menu1/menu1-1",
-        name: "Menu1",
+        path: "",
+        component: () => import("@/views/dashboard/admin/index.vue"),
+        name: "UserMange1",
         meta: {
-          title: "menu1"
-        },
-        children: [
-          {
-            path: "menu1-1",
-            component: () => import("@/views/menu/menu1/menu1-1/index.vue"),
-            name: "Menu1-1",
-            meta: {
-              title: "menu1-1"
-            }
-          },
-          {
-            path: "menu1-2",
-            component: () => import("@/views/menu/menu1/menu1-2/index.vue"),
-            redirect: "/menu/menu1/menu1-2/menu1-2-1",
-            name: "Menu1-2",
-            meta: {
-              title: "menu1-2"
-            },
-            children: [
-              {
-                path: "menu1-2-1",
-                component: () => import("@/views/menu/menu1/menu1-2/menu1-2-1/index.vue"),
-                name: "Menu1-2-1",
-                meta: {
-                  title: "menu1-2-1"
-                }
-              },
-              {
-                path: "menu1-2-2",
-                component: () => import("@/views/menu/menu1/menu1-2/menu1-2-2/index.vue"),
-                name: "Menu1-2-2",
-                meta: {
-                  title: "menu1-2-2"
-                }
-              }
-            ]
-          },
-          {
-            path: "menu1-3",
-            component: () => import("@/views/menu/menu1/menu1-3/index.vue"),
-            name: "Menu1-3",
-            meta: {
-              title: "menu1-3"
-            }
-          }
-        ]
-      },
-      {
-        path: "menu2",
-        component: () => import("@/views/menu/menu2/index.vue"),
-        name: "Menu2",
-        meta: {
-          title: "menu2"
+          title: "用户管理",
+          svgIcon: "dashboard",
+          affix: true
         }
       }
     ]
   }
 ]
 
-/**
- * 动态路由
- * 用来放置有权限 (Roles 属性) 的路由
- * 必须带有 Name 属性
- */
-export const asyncRoutes: RouteRecordRaw[] = [
-  {
-    path: "/permission",
-    component: Layout,
-    redirect: "/permission/page",
-    name: "Permission",
-    meta: {
-      title: "权限管理",
-      svgIcon: "lock",
-      roles: ["admin", "editor"], // 可以在根路由中设置角色
-      alwaysShow: true // 将始终显示根菜单
-    },
-    children: [
-      {
-        path: "page",
-        component: () => import("@/views/permission/page.vue"),
-        name: "PagePermission",
-        meta: {
-          title: "页面权限",
-          roles: ["admin"] // 或者在子导航中设置角色
+export const usePermissionStore = defineStore("permission", () => {
+  const routes = ref<RouteRecordRaw[]>(constantRoutes)
+  const setRoutes = () => {
+    const new_routes = constantRoutes
+    new_routes.pop()
+    new_routes.push({
+      path: "/userMange",
+      component: Layout,
+      name: "UserMange",
+      children: [
+        {
+          path: "",
+          component: () => import("@/views/table/user-mange/index.vue"),
+          name: "UserMange1",
+          meta: {
+            title: "用户管理",
+            svgIcon: "lock",
+            affix: true
+          }
         }
-      },
-      {
-        path: "directive",
-        component: () => import("@/views/permission/directive.vue"),
-        name: "DirectivePermission",
-        meta: {
-          title: "指令权限" // 如果未设置角色，则表示：该页面不需要权限，但会继承根路由的角色
-        }
-      }
-    ]
-  },
-  {
-    path: "/:pathMatch(.*)*", // Must put the 'ErrorPage' route at the end, 必须将 'ErrorPage' 路由放在最后
-    redirect: "/404",
-    name: "ErrorPage",
-    meta: {
-      hidden: true
-    }
+      ]
+    })
+    routes.value = new_routes
   }
-]
+
+  return { routes, setRoutes }
+})
+
+/** 在 setup 外使用 */
+export function usePermissionStoreHook() {
+  return usePermissionStore(store)
+}
 
 const router = createRouter({
   history:

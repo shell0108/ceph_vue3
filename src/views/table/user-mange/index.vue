@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { reactive, ref, watch } from "vue"
-import { createTableDataApi, deleteTableDataApi, updateTableDataApi, getTableDataApi } from "@/api/table"
+import { createUserDataApi, deleteUserDataApi, updateUserDataApi, getUserDataApi } from "@/api/user"
 import { type FormInstance, type FormRules, ElMessage, ElMessageBox } from "element-plus"
-import { Search, Refresh, CirclePlus, Delete, Download, RefreshRight } from "@element-plus/icons-vue"
-import { usePagination } from "@/hooks/usePagination"
+import { Search, Refresh, CirclePlus, Delete, RefreshRight } from "@element-plus/icons-vue"
+import { usePagination, dateFormat } from "@/hooks/usePagination"
 
 const loading = ref<boolean>(false)
 const { paginationData, handleCurrentChange, handleSizeChange } = usePagination()
@@ -13,29 +13,39 @@ const dialogVisible = ref<boolean>(false)
 const formRef = ref<FormInstance | null>(null)
 const formData = reactive({
   username: "",
-  password: ""
+  nickname: "",
+  phone: "",
+  email: "",
+  role: "admin"
 })
+
 const formRules: FormRules = reactive({
-  username: [{ required: true, trigger: "blur", message: "请输入用户名" }],
-  password: [{ required: true, trigger: "blur", message: "请输入密码" }]
+  username: [{ required: true, trigger: "blur", message: "请输入学号/职工号" }],
+  nickname: [{ required: true, trigger: "blur", message: "请输入姓名" }]
 })
+
 const handleCreate = () => {
   formRef.value?.validate((valid: boolean) => {
     if (valid) {
       if (currentUpdateId.value === undefined) {
-        createTableDataApi({
+        createUserDataApi({
           username: formData.username,
-          password: formData.password
+          nickname: formData.nickname,
+          password: formData.username,
+          phone: formData.phone,
+          email: formData.email,
+          role: formData.role
         }).then(() => {
           ElMessage.success("新增成功")
           dialogVisible.value = false
           getTableData()
         })
       } else {
-        updateTableDataApi({
+        updateUserDataApi({
           id: currentUpdateId.value,
-          username: formData.username,
-          password: formData.password
+          phone: formData.phone,
+          email: formData.email,
+          role: formData.role
         }).then(() => {
           ElMessage.success("修改成功")
           dialogVisible.value = false
@@ -50,7 +60,10 @@ const handleCreate = () => {
 const resetForm = () => {
   currentUpdateId.value = undefined
   formData.username = ""
-  formData.password = ""
+  formData.nickname = ""
+  formData.email = ""
+  formData.phone = ""
+  formData.role = "admin"
 }
 //#endregion
 
@@ -61,7 +74,7 @@ const handleDelete = (row: any) => {
     cancelButtonText: "取消",
     type: "warning"
   }).then(() => {
-    deleteTableDataApi(row.id).then(() => {
+    deleteUserDataApi(row.id).then(() => {
       ElMessage.success("删除成功")
       getTableData()
     })
@@ -74,7 +87,10 @@ const currentUpdateId = ref<undefined | string>(undefined)
 const handleUpdate = (row: any) => {
   currentUpdateId.value = row.id
   formData.username = row.username
-  formData.password = row.password
+  formData.nickname = row.nickname
+  formData.email = row.email
+  formData.phone = row.phone
+  formData.role = row.role
   dialogVisible.value = true
 }
 //#endregion
@@ -84,15 +100,17 @@ const tableData = ref<any[]>([])
 const searchFormRef = ref<FormInstance | null>(null)
 const searchData = reactive({
   username: "",
+  nickname: "",
   phone: ""
 })
 const getTableData = () => {
   loading.value = true
-  getTableDataApi({
+  getUserDataApi({
     currentPage: paginationData.currentPage,
     size: paginationData.pageSize,
     username: searchData.username || undefined,
-    phone: searchData.phone || undefined
+    phone: searchData.phone || undefined,
+    nickname: searchData.nickname || undefined
   })
     .then((res: any) => {
       paginationData.total = res.data.total
@@ -123,6 +141,13 @@ const handleRefresh = () => {
 }
 //#endregion
 
+// 禁用启用账号，决定用户是否可以登录
+const changeUserStatus = (id: string, status: boolean) => {
+  updateUserDataApi({ id: id, enable: status }).then(() => {
+    ElMessage.success(status ? "启用成功" : "禁用成功")
+  })
+}
+
 /** 监听分页参数的变化 */
 watch([() => paginationData.currentPage, () => paginationData.pageSize], getTableData, { immediate: true })
 </script>
@@ -131,8 +156,11 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
   <div class="app-container">
     <el-card v-loading="loading" shadow="never" class="search-wrapper">
       <el-form ref="searchFormRef" :inline="true" :model="searchData">
-        <el-form-item prop="username" label="用户名">
+        <el-form-item prop="username" label="学号/职工号">
           <el-input v-model="searchData.username" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="nickname" label="姓名">
+          <el-input v-model="searchData.nickname" placeholder="请输入" />
         </el-form-item>
         <el-form-item prop="phone" label="手机号">
           <el-input v-model="searchData.phone" placeholder="请输入" />
@@ -150,9 +178,6 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
           <el-button type="danger" :icon="Delete">批量删除</el-button>
         </div>
         <div>
-          <el-tooltip content="下载">
-            <el-button type="primary" :icon="Download" circle />
-          </el-tooltip>
           <el-tooltip content="刷新表格">
             <el-button type="primary" :icon="RefreshRight" circle @click="handleRefresh" />
           </el-tooltip>
@@ -161,23 +186,29 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
       <div class="table-wrapper">
         <el-table :data="tableData">
           <el-table-column type="selection" width="50" align="center" />
-          <el-table-column prop="username" label="用户名" align="center" />
-          <el-table-column prop="nickname" label="昵称" align="center" />
-          <!-- <el-table-column prop="roles" label="角色" align="center">
+          <el-table-column prop="username" label="学号/职工号" align="center" />
+          <el-table-column prop="nickname" label="姓名" align="center" />
+          <el-table-column prop="role" label="角色" align="center">
             <template #default="scope">
-              <el-tag v-if="scope.row.roles === 'admin'" effect="plain">admin</el-tag>
-              <el-tag v-else type="warning" effect="plain">{{ scope.row.roles }}</el-tag>
-            </template>
-          </el-table-column> -->
-          <el-table-column prop="phone" label="手机号" align="center" />
-          <el-table-column prop="email" label="邮箱" align="center" />
-          <el-table-column prop="status" label="状态" align="center">
-            <template #default="scope">
-              <el-tag v-if="scope.row.status" type="success" effect="plain">启用</el-tag>
-              <el-tag v-else type="danger" effect="plain">禁用</el-tag>
+              <el-tag v-if="scope.row.role === 'admin'" effect="plain">管理员</el-tag>
+              <el-tag v-else type="warning" effect="plain">普通用户</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="createTime" label="创建时间" align="center" />
+          <el-table-column prop="phone" label="手机号" align="center" />
+          <el-table-column prop="email" label="邮箱" align="center" />
+          <el-table-column prop="enable" label="状态" align="center">
+            <template #default="scope">
+              <el-switch
+                v-model="scope.row.enable"
+                active-color="#13ce66"
+                inactive-color="#ff4949"
+                active-text="启用"
+                inactive-text="禁用"
+                @change="changeUserStatus(scope.row.id, scope.row.enable)"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column prop="createTime" label="创建时间" align="center" :formatter="dateFormat" />
           <el-table-column fixed="right" label="操作" width="150" align="center">
             <template #default="scope">
               <el-button type="primary" text bg size="small" @click="handleUpdate(scope.row)">修改</el-button>
@@ -202,16 +233,28 @@ watch([() => paginationData.currentPage, () => paginationData.pageSize], getTabl
     <!-- 新增/修改 -->
     <el-dialog
       v-model="dialogVisible"
-      :title="currentUpdateId === undefined ? '新增用户' : '修改用户'"
+      :title="currentUpdateId === undefined ? '新增用户(初始密码为学号/职工号)' : '修改用户(学号/职工号 姓名不可更改)'"
       @close="resetForm"
       width="30%"
     >
       <el-form ref="formRef" :model="formData" :rules="formRules" label-width="100px" label-position="left">
-        <el-form-item prop="username" label="用户名">
-          <el-input v-model="formData.username" placeholder="请输入" />
+        <el-form-item prop="username" label="学号/职工号">
+          <el-input v-model="formData.username" placeholder="请输入" :disabled="currentUpdateId !== undefined" />
         </el-form-item>
-        <el-form-item prop="password" label="密码">
-          <el-input v-model="formData.password" placeholder="请输入" />
+        <el-form-item prop="nickname" label="姓名">
+          <el-input v-model="formData.nickname" placeholder="请输入" :disabled="currentUpdateId !== undefined" />
+        </el-form-item>
+        <el-form-item prop="phone" label="手机号">
+          <el-input v-model="formData.phone" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="email" label="邮箱">
+          <el-input v-model="formData.email" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item prop="role" label="角色">
+          <el-select v-model="formData.role" placeholder="请选择角色">
+            <el-option label="管理员" value="admin" />
+            <el-option label="普通用户" value="user" />
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>

@@ -1,9 +1,7 @@
 import { request } from "@/utils/service"
 
 export interface ILoginData {
-  /** admin 或 editor */
-  username: "admin" | "editor"
-  /** 密码 */
+  username: string
   password: string
   /** 验证码 */
   // code: string
@@ -19,15 +17,8 @@ export interface ILoginData {
 /** 登录并返回 Token */
 export function loginApi(data: ILoginData) {
   return request({
-    url: "login",
+    url: "/user/login",
     method: "post",
     data
-  })
-}
-/** 获取用户详情 */
-export function getUserInfoApi() {
-  return request({
-    url: "user/info",
-    method: "get"
   })
 }

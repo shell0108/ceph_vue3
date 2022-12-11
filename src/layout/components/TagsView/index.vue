@@ -2,7 +2,7 @@
 import { getCurrentInstance, onMounted, ref, watch } from "vue"
 import { type RouteRecordRaw, useRoute, useRouter } from "vue-router"
 import { type ITagView, useTagsViewStore } from "@/store/modules/tags-view"
-import { usePermissionStore } from "@/store/modules/permission"
+import { usePermissionStore } from "@/router"
 import ScrollPane from "./ScrollPane.vue"
 import path from "path-browserify"
 import { Close } from "@element-plus/icons-vue"

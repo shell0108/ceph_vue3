@@ -41,3 +41,7 @@ export const usePagination = (_paginationData: IPaginationData = {}) => {
 
   return { paginationData, handleCurrentChange, handleSizeChange }
 }
+
+export const dateFormat = (row: { [x: string]: string }, column: { property: string | number }) => {
+  return row[column.property].replace("T", " ")
+}

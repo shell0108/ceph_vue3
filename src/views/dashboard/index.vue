@@ -15,11 +15,7 @@ if (!userStore.roles.includes("admin")) {
 
 ElNotification({
   title: "Hello",
-  message: h(
-    "a",
-    { style: "color: teal", target: "_blank", href: "https://github.com/un-pany/v3-admin-vite" },
-    "小项目获取 star 不易，如果你喜欢这个项目的话，欢迎点击这里支持一个 star ！这是作者持续维护的唯一动力（小声：毕竟是免费的）"
-  ),
+  message: h("a", "欢迎使用安全ceph云存储系统，祝您身体健康、生活愉快"),
   duration: 0,
   position: "bottom-right"
 })

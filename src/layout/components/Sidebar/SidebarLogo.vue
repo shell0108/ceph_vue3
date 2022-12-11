@@ -35,6 +35,7 @@ const props = defineProps({
   .sidebar-logo-text {
     height: 100%;
     vertical-align: middle;
+    width: 100%;
   }
 }
 
