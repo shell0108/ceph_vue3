@@ -4,7 +4,6 @@ import vue from "@vitejs/plugin-vue"
 import vueJsx from "@vitejs/plugin-vue-jsx"
 import { createSvgIconsPlugin } from "vite-plugin-svg-icons"
 import svgLoader from "vite-svg-loader"
-import UnoCSS from "unocss/vite"
 
 /** 配置项文档：https://cn.vitejs.dev/config */
 export default (configEnv: ConfigEnv): UserConfigExport => {
@@ -32,17 +31,6 @@ export default (configEnv: ConfigEnv): UserConfigExport => {
       cors: true,
       /** 端口被占用时，是否直接退出 */
       strictPort: false
-      /** 接口代理 */
-      // proxy: {
-      //   "/api/v1": {
-      //     // target: "https://mock.mengxuegu.com/mock/63218b5fb4c53348ed2bc212/api/v1",
-      //     target: "http://localhost:9091/",
-      //     // ws: true,
-      //     /** 是否允许跨域 */
-      //     changeOrigin: true,
-      //     rewrite: (path) => path.replace("/api/v1", "")
-      //   }
-      // }
     },
     build: {
       /** 消除打包大小超过 500kb 警告 */
@@ -52,7 +40,7 @@ export default (configEnv: ConfigEnv): UserConfigExport => {
       /** 在打包代码时移除 console.log、debugger 和 注释 */
       terserOptions: {
         compress: {
-          drop_console: false,
+          drop_console: true,
           drop_debugger: true,
           pure_funcs: ["console.log"]
         },
@@ -74,26 +62,7 @@ export default (configEnv: ConfigEnv): UserConfigExport => {
       createSvgIconsPlugin({
         iconDirs: [path.resolve(process.cwd(), "src/icons/svg")],
         symbolId: "icon-[dir]-[name]"
-      }),
-      /** UnoCSS */
-      UnoCSS()
-      /** 自动按需引入 (已更改为完整引入，所以注释了) */
-      // AutoImport({
-      //   dts: "./types/auto-imports.d.ts",
-      //   /** 自动按需导入 Element Plus 相关函数，比如 ElMessage */
-      //   resolvers: [ElementPlusResolver()],
-      //   /** 根据自动按需导入的相关 API，生成 .eslintrc-auto-import.json 文件供 Eslint 识别 */
-      //   eslintrc: {
-      //     enabled: true, // 默认 false
-      //     filepath: "./types/.eslintrc-auto-import.json", // 默认 "./.eslintrc-auto-import.json"
-      //     globalsPropValue: true // 默认 true (true | false | "readonly" | "readable" | "writable" | "writeable")
-      //   }
-      // }),
-      // Components({
-      //   dts: "./types/components.d.ts",
-      //   /** 自动按需导入 Element Plus 组件 */
-      //   resolvers: [ElementPlusResolver()]
-      // })
+      })
     ]
   }
 }

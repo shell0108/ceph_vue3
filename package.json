@@ -1,18 +1,32 @@
 {
-  "name": "v3-admin-vite",
-  "version": "3.3.1",
-  "description": "一个免费开源的中后台管理系统基础解决方案，基于 Vue3、TypeScript、Element Plus、Pinia 和 Vite 等主流技术.",
+  "name": "ceph-cloude-stroage",
+  "version": "1.0.0",
+  "main": "dist/main/index.js",
+  "description": "基于 Vue3、TypeScript、Element Plus、Pinia、electron 和 Vite 等主流技术搭建的网盘系统",
   "author": {
-    "name": "pany",
-    "email": "939630029@qq.com",
-    "url": "https://github.com/pany-ang"
+    "name": "jhc",
+    "email": "2258155482@qq.com",
+    "url": "https://github.com/shell0108"
+  },
+  "env": {
+    "host": "127.0.0.1",
+    "port": 13333,
+    "title": "V3 Electron Vite",
+    "identity": null,
+    "provisioningProfile": "build/v3electron.provisionprofile",
+    "entitlements": "build/entitlements.mac.plist",
+    "entitlementsInherit": "build/entitlements.mac.plist",
+    "afterSign": "build/notarize.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/un-pany/v3-admin-vite.git"
+    "url": "https://github.com/shell0108/ceph_vue3"
   },
   "scripts": {
     "dev": "vite",
+    "electron": "vite --config vite.config.electron.ts",
+    "build": "vite build --config vite.config.electron.ts && electron-builder",
+    "build:dir": "vite build && electron-builder --dir",
     "build:stage": "vue-tsc --noEmit && vite build --mode staging",
     "build:prod": "vue-tsc --noEmit && vite build",
     "preview:stage": "pnpm build:stage && vite preview",
@@ -22,11 +36,66 @@
     "lint": "pnpm lint:eslint && pnpm lint:prettier",
     "prepare": "husky install"
   },
+  "build": {
+    "productName": "ceph-cloude-stroage",
+    "appId": "com.app.ceph-cloude-stroage",
+    "directories": {
+      "output": "release/v${version}"
+    },
+    "extraResources": [],
+    "files": [
+      "dist/**/*",
+      "static/**/*"
+    ],
+    "asar": false,
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "shortcutName": "${productName}",
+      "uninstallDisplayName": "${productName}",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": true,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [
+      {
+        "provider": "generic",
+        "url": ""
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "provisioningProfile": "build/v3electron.provisionprofile",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "icon": "static/icons/logo.icns",
+      "artifactName": "${productName} ${version} ${platform} ${arch}.${ext}"
+    },
+    "dmg": {
+      "sign": false
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "static/icons/logo.ico",
+      "artifactName": "${productName} v${version}.${ext}",
+      "requestedExecutionLevel": "requireAdministrator"
+    }
+  },
   "dependencies": {
+    "@electron/remote": "^2.0.9",
     "@element-plus/icons-vue": "^2.0.10",
     "axios": "^1.1.3",
     "dayjs": "^1.11.6",
+    "electron-log": "^4.4.8",
+    "electron-notarize": "^1.2.2",
     "element-plus": "^2.2.20",
+    "esbuild": "*",
     "js-cookie": "^3.0.1",
     "lodash-es": "^4.17.21",
     "normalize.css": "^8.0.1",
@@ -53,6 +122,8 @@
     "@vitejs/plugin-vue-jsx": "^2.1.1",
     "@vue/eslint-config-prettier": "^7.0.0",
     "@vue/eslint-config-typescript": "^11.0.2",
+    "electron": "^22.0.0",
+    "electron-builder": "^23.6.0",
     "eslint": "^8.27.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-vue": "^9.7.0",
@@ -64,6 +135,7 @@
     "typescript": "^4.8.4",
     "unocss": "^0.46.3",
     "vite": "^3.2.3",
+    "vite-electron-plugin": "^0.5.2",
     "vite-plugin-svg-icons": "^2.0.1",
     "vite-svg-loader": "^3.6.0",
     "vue-eslint-parser": "^9.1.0",
@@ -95,7 +167,8 @@
     "element-plus",
     "element-plus-admin",
     "ts",
-    "typescript"
+    "typescript",
+    "electron"
   ],
   "license": "MIT"
 }
